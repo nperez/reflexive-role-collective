@@ -8,7 +8,9 @@ use MooseX::Types::Moose(':all');
 use MooseX::Types::Structured(':all');
 use Reflex::Callbacks qw(cb_method);
 
-=role_parameter store
+=role_parameter collection
+    
+    default: objects
 
 store contains the name of the attribute that holds the actual collection of
 objects.
@@ -127,37 +129,37 @@ role
 {
     my $p = shift;
 
-=role_requires ignore
+=role_require ignore
 
 This role requires the method ignore from Reflex::Base
 
 =cut
 
-=role_requires watch
+=role_require watch
 
 This role requires the method watch from Reflex::Base
 
 =cut
 
-=role_requires clear_objects
+=role_require clear_objects
 
 This role requires the method named in method_clear_objects
 
 =cut
 
-=role_requires count_objects
+=role_require count_objects
 
 This role requires the method named in method_count_objects
 
 =cut
 
-=role_requires add_object
+=role_require add_object
 
 This role requires the method named in method_add_object
 
 =cut
 
-=role_requires delete_object
+=role_require delete_object
 
 This role requires the method named in method_del_object
 
@@ -220,6 +222,7 @@ removed from the collection.
 1;
 __END__
 =head1 DESCRIPTION
+
 Reflexive::Role::Collective provides are more comprehensive and extensible way
 to define collections that act upon events emitted from contained objects.
 
