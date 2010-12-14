@@ -120,7 +120,7 @@ method name is also a tuple, a method will be setup with the name of the first
 element of the tuple and it will emit the event in the second element
 
     # example
-    [ some_event => [ 'some_method_that_emits' => 'this_event' ]
+    [ some_event => [ 'some_method_that_emits' => 'this_event' ] ]
 
 Internally, the embedded tuple is passed unmodified to
 L<Reflex::Role/method_emit>. This allows for easy setup of watched events that
