@@ -112,23 +112,39 @@ parameter stored_constraint =>
 
 =role_parameter watched_events
 
-    isa: ArrayRef[Tuple[Str,Str]], default: []
+    isa: ArrayRef[Tuple[Str,Str|Tuple[Str,Str]]],
 
 watched_events contains an arrayref of tuples that indicate the event to watch
-and the callback method name to call when that event occurs.
+and the callback method name to call when that event occurs. If the callback
+method name is also a tuple, a method will be setup with the name of the first
+element of the tuple and it will emit the event in the second element
+
+    # example
+    [ some_event => [ 'some_method_that_emits' => 'this_event' ]
+
+Internally, the embedded tuple is passed unmodified to
+L<Reflex::Role/method_emit>. This allows for easy setup of watched events that
+merely re-emit.
 
 =cut
 
 parameter watched_events =>
 (
-    isa => ArrayRef[Tuple[Str, Str]],
+    isa => ArrayRef[Tuple[Str,Str|Tuple[Str,Str]]],
     default => sub { [] },
 );
 
 role
 {
     my $p = shift;
-
+    
+    foreach my $tuple (@{$p->watched_events})
+    {
+        if(ref($tuple->[1]) eq 'ARRAY')
+        {
+            method_emit @{$tuple->[1]}
+        }
+    }
 =role_require ignore
 
 This role requires the method ignore from Reflex::Base
@@ -192,7 +208,14 @@ into the collection
 
         foreach my $tuple (@{$p->watched_events})
         {
-            $self->watch($object, $tuple->[0] => cb_method($self, $tuple->[1]));
+            if(ref($tuple->[1]) eq 'ARRAY')
+            {
+                $self->watch($object, $tuple->[0] => cb_method($self, $tuple->[1]->[0]));
+            }
+            else
+            {
+                $self->watch($object, $tuple->[0] => cb_method($self, $tuple->[1]));
+            }
         }
 
         $self->${\$p->method_add_object}($object, $object);

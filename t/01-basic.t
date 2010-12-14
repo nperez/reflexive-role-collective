@@ -4,7 +4,7 @@ use Test::More;
 
 my $forgets = 0;
 my $remembers = 0;
-
+my $reemits = 0;
 {
     package MyCollection;
     use Moose;
@@ -27,7 +27,7 @@ my $remembers = 0;
     with 'Reflexive::Role::Collective' =>
     {
         stored_constraint => role_type('Reflex::Role::Collectible'),
-        watched_events => [ [stopped => 'forget_me'] ],
+        watched_events => [ [ stopped => 'forget_me' ], [ foo_event => [ 'foo_method' => 'foo_reemit' ] ] ],
         method_clear_objects => 'clear_objects',
         method_count_objects => 'count_objects',
         method_add_object => 'add_object',
@@ -54,20 +54,45 @@ my $remembers = 0;
     use Moose;
     extends 'Reflex::Base';
     with 'Reflex::Role::Collectible';
+
+    sub foo { shift->emit(event => 'foo_event') }
 }
 
-my $collection = MyCollection->new();
+{
+    package CollectionTester;
+    use Moose;
+    extends 'Reflex::Base';
+    
+    has collection =>
+    (
+        is => 'rw',
+        isa => 'MyCollection',
+        traits => ['Reflex::Trait::Observed'],
+        handles => ['remember', 'count_objects'],
+        setup => {},
+    );
+
+    sub on_collection_foo_reemit
+    {
+        $reemits++;
+        Test::More::pass('foo emitted from a collectible, caught in a collection, and reemitted and caught by the tester');
+    }
+}
+
+my $tester = CollectionTester->new();
 my $collectibles = [];
 for(0..9)
 {
     push(@$collectibles, MyCollectible->new());
-    $collection->remember($collectibles->[$_]);
+    $tester->remember($collectibles->[$_]);
 }
 
-$_->stopped() for @$collectibles;
+($_->foo, $_->stopped()) for @$collectibles;
 
-$collection->run_all();
+$tester->run_all();
 
 is($forgets, $remembers, 'got the same amount of forgets and remembers');
-is($collection->count_objects, 0, 'No more objects in the collection');
+is($tester->count_objects, 0, 'No more objects in the collection');
+is($reemits, $forgets, 'got the right amount of reemits');
+
 done_testing();
