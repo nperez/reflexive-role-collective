@@ -2,6 +2,9 @@ Revision history for {{ $dist->name }}: {{ $dist->version }}
 
 {{ $NEXT }}
 
+1.110100  2011-01-10 13:59:05 America/Chicago
+        Update tests to use the new Reflex::Sender API
+
 1.103480  2010-12-13 18:41:41 America/Chicago
         Implement watched events that merely re-emit another event
 
