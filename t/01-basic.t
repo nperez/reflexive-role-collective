@@ -38,7 +38,7 @@ my $reemits = 0;
     {
         my ($self, $args) = @_;
         Test::More::pass('got forget_me. total forgets: ' . ++$forgets);
-        $self->forget($args->{_sender});
+        $self->forget($args->{_sender}->get_first_emitter());
     }
 
     around remember => sub
@@ -62,7 +62,7 @@ my $reemits = 0;
     package CollectionTester;
     use Moose;
     extends 'Reflex::Base';
-    
+
     has collection =>
     (
         is => 'rw',
