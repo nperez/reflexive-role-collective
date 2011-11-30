@@ -6,7 +6,6 @@ use MooseX::Params::Validate;
 use Moose::Util::TypeConstraints;
 use MooseX::Types::Moose(':all');
 use MooseX::Types::Structured(':all');
-use Reflex::Callbacks qw(cb_method);
 
 =role_parameter collection
     
@@ -137,14 +136,20 @@ parameter watched_events =>
 role
 {
     my $p = shift;
+    use Reflex::Callbacks qw(cb_method);
     
     foreach my $tuple (@{$p->watched_events})
     {
         if(ref($tuple->[1]) eq 'ARRAY')
         {
-            method_emit @{$tuple->[1]}
+            my ($method_name, $event_name) = @{$tuple->[1]};
+            method $method_name => sub {
+                my ($self, $event) = @_;
+                $self->re_emit($event, -name => $event_name);
+            };
         }
     }
+
 =role_require ignore
 
 This role requires the method ignore from Reflex::Base

@@ -9,7 +9,7 @@ my $reemits = 0;
     package MyCollection;
     use Moose;
     use Moose::Util::TypeConstraints;
-    extends 'Reflex::Base';
+    with 'Reflex::Role::Reactive';
 
     has store => (
         is      => 'rw',
@@ -36,9 +36,9 @@ my $reemits = 0;
 
     sub forget_me
     {
-        my ($self, $args) = @_;
+        my ($self, $event) = @_;
         Test::More::pass('got forget_me. total forgets: ' . ++$forgets);
-        $self->forget($args->{_sender}->get_first_emitter());
+        $self->forget($event->get_first_emitter());
     }
 
     around remember => sub
@@ -46,28 +46,28 @@ my $reemits = 0;
         my ($orig, $self, $obj) = @_;
         Test::More::pass('got remember. total remembers: ' . ++$remembers);
         $self->$orig($obj);
-    }
+    };
 }
 
 {
     package MyCollectible;
     use Moose;
-    extends 'Reflex::Base';
+    with 'Reflex::Role::Reactive';
     with 'Reflex::Role::Collectible';
 
-    sub foo { shift->emit(event => 'foo_event') }
+    sub foo { shift->emit(-name => 'foo_event') }
 }
 
 {
     package CollectionTester;
     use Moose;
-    extends 'Reflex::Base';
+    with 'Reflex::Role::Reactive';
 
     has collection =>
     (
         is => 'rw',
         isa => 'MyCollection',
-        traits => ['Reflex::Trait::Observed'],
+        traits => ['Reflex::Trait::Watched'],
         handles => ['remember', 'count_objects'],
         setup => {},
     );
